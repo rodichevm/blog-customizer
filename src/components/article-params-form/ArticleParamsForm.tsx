@@ -2,7 +2,7 @@ import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
 
 import styles from './ArticleParamsForm.module.scss';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Text } from 'src/ui/text';
 import { Select } from 'src/ui/select';
 import {
@@ -18,16 +18,33 @@ import {
 import { RadioGroup } from 'src/ui/radio-group';
 import { Separator } from 'src/ui/separator';
 
-export const ArticleParamsForm = () => {
+type ArticleParamsFormProps = {
+	initialArticleState: ArticleStateType;
+	onApply: (newState: ArticleStateType) => void;
+};
+
+export const ArticleParamsForm = ({
+	initialArticleState,
+	onApply,
+}: ArticleParamsFormProps) => {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
-	const [ArticleState, setArticleState] =
-		useState<ArticleStateType>(defaultArticleState);
+	const [draftArticleState, setDraftArticleState] =
+		useState<ArticleStateType>(initialArticleState);
 	const sidebarRef = useRef<HTMLDivElement | null>(null);
+
 	const handleChange =
-		(key: keyof typeof defaultArticleState) => (selected: OptionType) => {
-			setArticleState((prevState) => ({ ...prevState, [key]: selected }));
-			console.log(ArticleState);
+		(key: keyof ArticleStateType) => (selected: OptionType) => {
+			setDraftArticleState((prevState) => ({ ...prevState, [key]: selected }));
 		};
+	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		onApply(draftArticleState);
+	};
+
+	const handleReset = () => {
+		setDraftArticleState(defaultArticleState);
+		onApply(defaultArticleState);
+	};
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -43,6 +60,9 @@ export const ArticleParamsForm = () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
 	}, []);
+	useEffect(() => {
+		setDraftArticleState(initialArticleState);
+	}, [initialArticleState]);
 
 	return (
 		<>
@@ -57,12 +77,15 @@ export const ArticleParamsForm = () => {
 				className={`${styles.container} ${
 					isOpen ? styles.container_open : ''
 				}`}>
-				<form className={styles.form}>
+				<form
+					className={styles.form}
+					onSubmit={handleSubmit}
+					onReset={handleReset}>
 					<Text size={31} uppercase={true} weight={800}>
 						Задайте параметры
 					</Text>
 					<Select
-						selected={ArticleState.fontFamilyOption}
+						selected={draftArticleState.fontFamilyOption}
 						options={fontFamilyOptions}
 						title={'Шрифт'}
 						onChange={handleChange('fontFamilyOption')}
@@ -70,25 +93,25 @@ export const ArticleParamsForm = () => {
 					<RadioGroup
 						name={'fontSizeOptions'}
 						options={fontSizeOptions}
-						selected={ArticleState.fontSizeOption}
+						selected={draftArticleState.fontSizeOption}
 						title={'Размер шрифта'}
 						onChange={handleChange('fontSizeOption')}
 					/>
 					<Select
-						selected={ArticleState.fontColor}
+						selected={draftArticleState.fontColor}
 						options={fontColors}
 						title={'Цвет шрифта'}
 						onChange={handleChange('fontColor')}
 					/>
 					<Separator />
 					<Select
-						selected={ArticleState.backgroundColor}
+						selected={draftArticleState.backgroundColor}
 						options={backgroundColors}
 						title={'Цвет фона'}
 						onChange={handleChange('backgroundColor')}
 					/>
 					<Select
-						selected={ArticleState.contentWidth}
+						selected={draftArticleState.contentWidth}
 						options={contentWidthArr}
 						title={'Ширина контента'}
 						onChange={handleChange('contentWidth')}
