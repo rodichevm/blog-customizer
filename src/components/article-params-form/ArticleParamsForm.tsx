@@ -17,6 +17,8 @@ import {
 } from 'src/constants/articleProps';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Separator } from 'src/ui/separator';
+import { clsx } from 'clsx';
+import { useOutSideClickClose } from 'src/hooks/useOutsideClickClose';
 
 type ArticleParamsFormProps = {
 	initialArticleState: ArticleStateType;
@@ -45,21 +47,7 @@ export const ArticleParamsForm = ({
 		setDraftArticleState(defaultArticleState);
 		onApply(defaultArticleState);
 	};
-
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (
-				sidebarRef.current &&
-				!sidebarRef.current.contains(event.target as Node)
-			) {
-				setIsOpen(false);
-			}
-		};
-		document.addEventListener('mousedown', handleClickOutside);
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
-	}, []);
+	useOutSideClickClose(isOpen, setIsOpen, sidebarRef);
 	useEffect(() => {
 		setDraftArticleState(initialArticleState);
 	}, [initialArticleState]);
@@ -74,9 +62,7 @@ export const ArticleParamsForm = ({
 			/>
 			<aside
 				ref={sidebarRef}
-				className={`${styles.container} ${
-					isOpen ? styles.container_open : ''
-				}`}>
+				className={clsx(styles.container, { [styles.container_open]: isOpen })}>
 				<form
 					className={styles.form}
 					onSubmit={handleSubmit}
